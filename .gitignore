@@ -1,406 +1,44 @@
-# ============================================
-# TOURLINGO .GITIGNORE
-# Comprehensive ignore file for monorepo
-# ============================================
-
-# ============================================
-# DEPENDENCIES
-# ============================================
+# Dependencies
 node_modules/
 .pnpm-store/
-.yarn/
-.npm/
-bower_components/
-jspm_packages/
-tree.py
 
-# Lockfile backups (keep actual lockfiles)
-package-lock.json.backup
-yarn.lock.backup
-pnpm-lock.yaml.backup
-# Package manager lockfiles (using pnpm)
-package-lock.json
-yarn.lock
-# ============================================
-# BUILD OUTPUTS
-# ============================================
-# Next.js
+# Build outputs
 .next/
 out/
-.output/
-.nuxt/
-.cache/
-
-# General build
 dist/
 build/
-es/
-esm/
-cjs/
 
-# Turborepo
-.turbo/
-
-# Compiled files
-*.js.map
-*.d.ts.map
-*.tsbuildinfo
-
-# ============================================
-# ENVIRONMENT & SECRETS
-# ============================================
 # Environment files
 .env
 .env.*
 .env.local
-.env.development
-.env.development.local
-.env.test
-.env.test.local
-.env.production
-.env.production.local
-.env.staging
-.env.staging.local
-
-# Keep example file
 !.env.example
-!.env.sample
-!.env.template
 
-# Secret keys
-*.pem
-*.key
-*.cert
-*.crt
-*.p12
-*.pfx
-secrets/
-.secrets/
-credentials/
-.credentials/
-
-# Service account files
-*-service-account.json
-service-account*.json
-firebase-adminsdk*.json
-
-# ============================================
-# IDE & EDITORS
-# ============================================
-# JetBrains (PyCharm, WebStorm, IntelliJ)
+# IDE
 .idea/
-*.iml
-*.ipr
-*.iws
-.idea_modules/
-atlassian-ide-plugin.xml
-
-# VS Code
 .vscode/
-*.code-workspace
-.history/
-
-# Sublime Text
-*.sublime-project
-*.sublime-workspace
-
-# Vim/Neovim
 *.swp
 *.swo
-*.swn
-*~
-.vim/
-.nvim/
-Session.vim
-.netrwhist
-tags
 
-# Emacs
-*~
-\#*\#
-/.emacs.desktop
-/.emacs.desktop.lock
-*.elc
-auto-save-list
-tramp
-.\#*
-.org-id-locations
-*_archive
-*.org_archive
-ltximg/
-
-# TextMate
-*.tmproj
-*.tmproject
-tmtags
-
-# Notepad++
-nppBackup/
-
-# ============================================
-# OPERATING SYSTEMS
-# ============================================
-# macOS
+# OS
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-.AppleDouble
-.LSOverride
-.DocumentRevisions-V100
-.fseventsd
-.TemporaryItems
-.VolumeIcon.icns
-.com.apple.timemachine.donotpresent
-.AppleDB
-.AppleDesktop
-Network Trash Folder
-Temporary Items
-.apdisk
-Icon?
-
-# Windows
 Thumbs.db
-Thumbs.db:encryptable
-ehthumbs.db
-ehthumbs_vista.db
-*.stackdump
-[Dd]esktop.ini
-$RECYCLE.BIN/
-*.cab
-*.msi
-*.msix
-*.msm
-*.msp
-*.lnk
 
-# Linux
-*~
-.fuse_hidden*
-.directory
-.Trash-*
-.nfs*
-
-# ============================================
-# LOGS & DEBUG
-# ============================================
-logs/
-*.log
+# Debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-.pnpm-debug.log
 
-# Runtime logs
-pids/
-*.pid
-*.seed
-*.pid.lock
-
-# Debug files
-*.debug
-.debug/
-
-# ============================================
-# TESTING & COVERAGE
-# ============================================
+# Testing
 coverage/
-.coverage/
-*.lcov
-.nyc_output/
-lib-cov/
-htmlcov/
-
-# Jest
-jest-results/
-jest_html_reporters-report/
-
-# Playwright
-playwright-report/
-playwright/.cache/
-test-results/
-
-# Cypress
-cypress/videos/
-cypress/screenshots/
-cypress/downloads/
-
-# ============================================
-# PACKAGE MANAGERS & BUNDLERS
-# ============================================
-# Webpack
-.webpack/
-
-# Parcel
-.parcel-cache/
-
-# Rollup
-.rollup.cache/
-
-# esbuild
-.esbuild/
-
-# Vite
-.vite/
-
-# SWC
-.swc/
-
-# ============================================
-# FRAMEWORK SPECIFIC
-# ============================================
-# Next.js
-.next/
-out/
-next-env.d.ts
 
 # Vercel
 .vercel/
-.vercel-build/
 
-# Supabase
-supabase/.branches/
-supabase/.temp/
-supabase/.env
-.supabase/
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
 
-# LiveKit
-.livekit/
-
-# Prisma
-prisma/migrations/*.sql.bak
-
-# ============================================
-# DOCUMENTATION
-# ============================================
-# TypeDoc
-docs/api/
-typedoc/
-
-# Storybook
-storybook-static/
-.storybook-out/
-
-# ============================================
-# TEMPORARY FILES
-# ============================================
-tmp/
-temp/
-.tmp/
-.temp/
-*.tmp
-*.temp
-*.bak
-*.backup
-*.old
-
-# ============================================
-# MISC
-# ============================================
-# Archives
-*.zip
-*.tar
-*.tar.gz
-*.tgz
-*.rar
-*.7z
-
-# Media (uncomment if you want to ignore)
-# *.mp3
-# *.mp4
-# *.wav
-# *.avi
-# *.mov
-
-# Large files
-*.iso
-*.dmg
-
-# Diagnostic reports
-report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
-
-# Optional npm cache directory
-.npm/
-
-# Optional eslint cache
-.eslintcache
-
-# Optional stylelint cache
-.stylelintcache
-
-# Microbundle cache
-.rpt2_cache/
-.rts2_cache_cjs/
-.rts2_cache_es/
-.rts2_cache_umd/
-
-# Optional REPL history
-.node_repl_history
-
-# Yarn Integrity file
-.yarn-integrity
-
-# dotenv environment variable files
-.env.vault
-
-# Stores VSCode versions used for testing VSCode extensions
-.vscode-test/
-
-# yarn v2
-.yarn/cache
-.yarn/unplugged
-.yarn/build-state.yml
-.yarn/install-state.gz
-
-# Serverless
-.serverless/
-
-# FuseBox
-.fusebox/
-
-# DynamoDB Local files
-.dynamodb/
-
-# TernJS
-.tern-port
-
-# Contentlayer
-.contentlayer/
-
-# ============================================
-# PROJECT SPECIFIC
-# ============================================
-# Audio recordings (development)
-recordings/
-*.webm
-*.ogg
-
-# Transcripts (local testing)
-transcripts/
-
-# Generated files
-generated/
-__generated__/
-
-# Local database
-*.db
-*.sqlite
-*.sqlite3
-
-# PWA generated files
-apps/operator/public/sw.js
-apps/operator/public/workbox-*.js
-
-# ============================================
-# KEEP THESE (negations)
-# ============================================
-!.gitkeep
-!.npmrc
-!.nvmrc
-!.node-version
-!.prettierrc
-!.eslintrc*
-!.editorconfig
+# Misc
+*.log
+.turbo/
