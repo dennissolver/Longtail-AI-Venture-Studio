@@ -228,7 +228,7 @@ async function handleProductChange(supabase: any, ventureId: string, product: St
       stripe_product_id: product.id,
       name: product.name,
       description: product.description,
-      features: product.features?.map(f => f.name) || [],
+      features: (product as any).features?.map((f: any) => f.name) || [],
       is_active: product.active,
     }, { onConflict: 'stripe_product_id' })
 }
