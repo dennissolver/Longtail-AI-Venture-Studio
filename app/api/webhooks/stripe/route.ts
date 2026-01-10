@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Venture not found or Stripe not configured' }, { status: 404 })
   }
 
-  const stripe = new Stripe(venture.stripe_secret_key, { apiVersion: '2024-02-25.acacia' })
+  const stripe = new Stripe(venture.stripe_secret_key, { apiVersion: '2025-02-24.acacia' })
 
   let event: Stripe.Event
 
