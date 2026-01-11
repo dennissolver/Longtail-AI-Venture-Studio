@@ -9,16 +9,16 @@ export async function GET() {
   }
 
   const githubToken = process.env.GITHUB_TOKEN
-  const githubUsername = process.env.GITHUB_USERNAME || 'dennisolevr'
 
   if (!githubToken) {
     return NextResponse.json({ error: 'GitHub token not configured' }, { status: 500 })
   }
 
   try {
-    // Fetch repos from GitHub API
+    // Fetch ALL repos the authenticated user has access to
+    // This includes: owned, private, org repos, and collaborator repos
     const response = await fetch(
-      `https://api.github.com/users/${githubUsername}/repos?per_page=100&sort=updated`,
+      `https://api.github.com/user/repos?per_page=100&sort=updated&affiliation=owner,collaborator,organization_member`,
       {
         headers: {
           Authorization: `Bearer ${githubToken}`,
@@ -46,6 +46,7 @@ export async function GET() {
         language: repo.language,
         stargazers_count: repo.stargazers_count,
         updated_at: repo.updated_at,
+        private: repo.private,
       }))
 
     return NextResponse.json({ repos: filteredRepos })
