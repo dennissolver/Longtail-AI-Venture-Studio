@@ -28,7 +28,7 @@ export async function POST(
 
     // Initialize Stripe client
     const stripe = new Stripe(venture.stripe_secret_key, {
-      apiVersion: '2024-11-20.acacia',
+      apiVersion: '2025-02-24.acacia',
     })
 
     const ventureId = venture.id
