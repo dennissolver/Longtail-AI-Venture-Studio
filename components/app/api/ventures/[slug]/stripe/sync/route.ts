@@ -127,7 +127,7 @@ export async function POST(
         // Also update/create signup record
         if (customerEmail) {
           const plan = subscription.items.data[0]?.price.product
-          const planName = typeof plan === 'object' ? plan.name : 'paid'
+          const planName = typeof plan === 'object' && plan && 'name' in plan ? plan.name : 'paid'
 
           await supabase
             .from('signups')
