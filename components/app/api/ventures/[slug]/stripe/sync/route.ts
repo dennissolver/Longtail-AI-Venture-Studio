@@ -48,7 +48,7 @@ export async function POST(
           stripe_product_id: product.id,
           name: product.name,
           description: product.description,
-          features: product.features?.map(f => f.name) || [],
+          features: (product.metadata?.features ? JSON.parse(product.metadata.features) : []),
           is_active: product.active,
           updated_at: new Date().toISOString(),
         }, {
