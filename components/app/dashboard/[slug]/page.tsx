@@ -231,7 +231,7 @@ export default async function VentureDetailPage({
           status: venture.status,
           target_arr: venture.target_arr,
           stripe_configured: !!venture.stripe_secret_key,
-        } as any}
+        }}
         signups={signupsList.map((s: any) => ({
           id: s.id,
           email: s.email,

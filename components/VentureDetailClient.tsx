@@ -21,7 +21,16 @@ import {
   BarChart,
   DonutChart,
 } from '@tremor/react'
-import { ArrowLeft, ExternalLink, Github, TrendingUp, Users, DollarSign, Activity, Target, UserMinus, Calendar } from 'lucide-react'
+import { ArrowLeft, ExternalLink, Github, TrendingUp, Users, DollarSign, Activity, Target, UserMinus, Calendar, CreditCard, Zap } from 'lucide-react'
+
+interface PricingTier {
+  id: string
+  name: string
+  price: number
+  interval: string
+  subscribersNeeded: number
+  currency: string
+}
 
 interface VentureDetailProps {
   venture: {
@@ -33,6 +42,7 @@ interface VentureDetailProps {
     github_url: string | null
     status: string
     target_arr: number
+    stripe_configured?: boolean
   }
   signups: Array<{
     id: string
@@ -72,6 +82,14 @@ interface VentureDetailProps {
     needed: number
     avgRevenuePerUser: number
   }
+  // Stripe pricing data
+  pricingTiers?: PricingTier[]
+  subscriptionCounts?: {
+    active: number
+    trialing: number
+    past_due: number
+    canceled: number
+  }
 }
 
 export default function VentureDetailClient({
@@ -84,15 +102,21 @@ export default function VentureDetailClient({
   dailySignups = [],
   churnData,
   subscribersToTarget,
+  pricingTiers = [],
+  subscriptionCounts,
 }: VentureDetailProps) {
   const progress = calculateProgress(metrics.arr, venture.target_arr)
+
+  // Use Stripe data if available, otherwise calculate from metrics
+  const hasStripePricing = pricingTiers.length > 0
 
   // Calculate subscribers needed to reach $1M ARR
   const avgRevenuePerUser = metrics.paidCustomers > 0
     ? metrics.arr / metrics.paidCustomers
     : 500 * 12 // Default assumption: $500/month average
-  const subscribersNeeded = Math.ceil(1000000 / avgRevenuePerUser)
-  const subscribersRemaining = Math.max(0, subscribersNeeded - metrics.paidCustomers)
+  const subscribersNeeded = subscribersToTarget?.needed || Math.ceil(1000000 / avgRevenuePerUser)
+  const currentSubscribers = subscribersToTarget?.current || metrics.paidCustomers
+  const subscribersRemaining = Math.max(0, subscribersNeeded - currentSubscribers)
 
   // Calculate churn rate
   const churnRate = metrics.totalSignups > 0
@@ -101,6 +125,11 @@ export default function VentureDetailClient({
 
   // Generate daily signups for last 30 days if not provided
   const last30DaysSignups = dailySignups.length > 0 ? dailySignups : generateDailySignups(signups)
+
+  // Get lowest price tier for primary display
+  const lowestPriceTier = pricingTiers.length > 0
+    ? pricingTiers.reduce((min, tier) => tier.price < min.price ? tier : min, pricingTiers[0])
+    : null
 
   return (
     <div className="space-y-8">
@@ -119,6 +148,14 @@ export default function VentureDetailClient({
             <Badge color={getStatusColor(venture.status) as any} size="lg">
               {venture.status}
             </Badge>
+            {venture.stripe_configured && (
+              <Badge color="emerald" size="sm">
+                <Flex className="gap-1">
+                  <CreditCard className="w-3 h-3" />
+                  Stripe Connected
+                </Flex>
+              </Badge>
+            )}
           </Flex>
           {venture.tagline && (
             <p className="text-gray-500 mt-1">{venture.tagline}</p>
@@ -163,21 +200,88 @@ export default function VentureDetailClient({
         </Flex>
       </Card>
 
+      {/* Stripe Pricing Tiers - Only show if we have Stripe data */}
+      {hasStripePricing && (
+        <Card decoration="left" decorationColor="emerald">
+          <Flex justifyContent="start" alignItems="center" className="gap-2 mb-4">
+            <CreditCard className="w-5 h-5 text-emerald-500" />
+            <Title>Pricing Plans</Title>
+            <Badge color="emerald" size="sm">From Stripe</Badge>
+          </Flex>
+          <Grid numItems={1} numItemsSm={2} numItemsLg={pricingTiers.length > 3 ? 4 : pricingTiers.length} className="gap-4">
+            {pricingTiers.map((tier) => (
+              <div key={tier.id} className="p-4 bg-gray-50 rounded-lg border border-gray-100">
+                <Text className="font-medium text-gray-900">{tier.name}</Text>
+                <Metric className="text-emerald-600 my-2">
+                  {formatCurrency(tier.price)}
+                  <span className="text-sm font-normal text-gray-500">/{tier.interval}</span>
+                </Metric>
+                <div className="mt-3 pt-3 border-t border-gray-200">
+                  <Text className="text-xs text-gray-500">Subscribers needed for $1M ARR:</Text>
+                  <Text className="text-lg font-semibold text-indigo-600">
+                    {formatNumber(tier.subscribersNeeded)}
+                  </Text>
+                </div>
+              </div>
+            ))}
+          </Grid>
+        </Card>
+      )}
+
+      {/* Subscription Status - Only show if we have Stripe data */}
+      {subscriptionCounts && (
+        <Card decoration="left" decorationColor="blue">
+          <Flex justifyContent="start" alignItems="center" className="gap-2 mb-4">
+            <Zap className="w-5 h-5 text-blue-500" />
+            <Title>Subscription Status</Title>
+            <Badge color="blue" size="sm">Live from Stripe</Badge>
+          </Flex>
+          <Grid numItems={2} numItemsSm={4} className="gap-4">
+            <div className="text-center p-4 bg-emerald-50 rounded-lg">
+              <Text className="text-emerald-600 font-medium">Active</Text>
+              <Metric className="text-emerald-700">{subscriptionCounts.active}</Metric>
+            </div>
+            <div className="text-center p-4 bg-blue-50 rounded-lg">
+              <Text className="text-blue-600 font-medium">Trialing</Text>
+              <Metric className="text-blue-700">{subscriptionCounts.trialing}</Metric>
+            </div>
+            <div className="text-center p-4 bg-amber-50 rounded-lg">
+              <Text className="text-amber-600 font-medium">Past Due</Text>
+              <Metric className="text-amber-700">{subscriptionCounts.past_due}</Metric>
+            </div>
+            <div className="text-center p-4 bg-gray-50 rounded-lg">
+              <Text className="text-gray-600 font-medium">Canceled</Text>
+              <Metric className="text-gray-700">{subscriptionCounts.canceled}</Metric>
+            </div>
+          </Grid>
+        </Card>
+      )}
+
       {/* Target Analysis - Subscribers Needed */}
       <Card decoration="left" decorationColor="indigo">
         <Flex justifyContent="start" alignItems="center" className="gap-2 mb-4">
           <Target className="w-5 h-5 text-indigo-500" />
           <Title>Path to $1M ARR</Title>
+          {hasStripePricing ? (
+            <Badge color="emerald" size="sm">Based on Stripe Pricing</Badge>
+          ) : (
+            <Badge color="amber" size="sm">Estimated</Badge>
+          )}
         </Flex>
         <Grid numItems={1} numItemsSm={3} className="gap-4">
           <div className="text-center p-4 bg-gray-50 rounded-lg">
             <Text className="text-gray-500">Current Paid Subscribers</Text>
-            <Metric className="text-indigo-600">{metrics.paidCustomers}</Metric>
+            <Metric className="text-indigo-600">{currentSubscribers}</Metric>
           </div>
           <div className="text-center p-4 bg-gray-50 rounded-lg">
             <Text className="text-gray-500">Subscribers Needed</Text>
             <Metric className="text-amber-600">{formatNumber(subscribersNeeded)}</Metric>
-            <Text className="text-xs text-gray-400">at {formatCurrency(avgRevenuePerUser)}/yr avg</Text>
+            <Text className="text-xs text-gray-400">
+              {hasStripePricing && lowestPriceTier
+                ? `at ${formatCurrency(lowestPriceTier.price)}/${lowestPriceTier.interval}`
+                : `at ${formatCurrency(avgRevenuePerUser)}/yr avg`
+              }
+            </Text>
           </div>
           <div className="text-center p-4 bg-gray-50 rounded-lg">
             <Text className="text-gray-500">Still Need</Text>
@@ -189,11 +293,11 @@ export default function VentureDetailClient({
           <Flex justifyContent="between" className="mb-1">
             <Text className="text-sm">Subscriber Progress</Text>
             <Text className="text-sm font-medium">
-              {metrics.paidCustomers} / {subscribersNeeded}
+              {currentSubscribers} / {formatNumber(subscribersNeeded)}
             </Text>
           </Flex>
           <ProgressBar
-            value={(metrics.paidCustomers / subscribersNeeded) * 100}
+            value={(currentSubscribers / subscribersNeeded) * 100}
             color="indigo"
             className="h-2"
           />
