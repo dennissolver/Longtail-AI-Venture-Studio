@@ -1,143 +1,179 @@
-# Longtail AI Ventures — Command Centre
+# Longtail AI Ventures - Dashboard Integration Files
 
-Portfolio dashboard for tracking AI ventures to $1M ARR.
+## Files Included
 
-## Features
+### Dashboard (LongtailAIVentureStudio)
 
-- 🔐 **Superadmin-only access** — Single login for dennis@corporateaisolutions.com
-- 📊 **Portfolio overview** — See all ventures at a glance with key metrics
-- 📈 **Drill-down dashboards** — Deep dive into individual venture metrics
-- 🔗 **GitHub integration** — Add new ventures from your GitHub repos
-- 📡 **Tracking API** — All ventures report signups, revenue, events
-- 💰 **Revenue tracking** — MRR, ARR, progress to $1M target
+Copy these files to your `LongtailAIVentureStudio` project:
 
-## Quick Start
+```
+app/
+├── dashboard/
+│   ├── page.tsx                      → Main dashboard with Stripe metrics
+│   └── [slug]/
+│       └── page.tsx                  → Venture detail page
+├── api/
+│   ├── track/
+│   │   └── route.ts                  → Receives events from venture apps
+│   └── ventures/
+│       └── [slug]/
+│           └── stripe/
+│               ├── route.ts          → Save/delete Stripe keys
+│               └── sync/
+│                   └── route.ts      → Sync data from Stripe
 
-### 1. Clone and Install
+components/
+├── DashboardClient.tsx               → Main dashboard UI
+├── VentureCard.tsx                   → Venture card with subscriber targets
+├── VentureDetailClient.tsx           → Venture detail UI with pricing tiers
+└── StripeConfig.tsx                  → Stripe configuration UI
 
-```bash
-git clone <your-repo>
-cd longtail-ai-ventures
-pnpm install
+lib/
+└── utils.ts                          → Utility functions (formatCurrency, etc.)
 ```
 
-### 2. Set Up Supabase
+### Database Migration
 
-1. Create a new Supabase project at [supabase.com](https://supabase.com)
-2. Go to SQL Editor and run the migration:
+Run `002_stripe_migration.sql` in Supabase SQL Editor.
+
+### Venture Apps (tracking code)
+
+Copy `lib/tracking.ts` to each venture app's `lib/` folder.
+
+---
+
+## Setup Instructions
+
+### Step 1: Run Database Migration
+
+1. Open Supabase Dashboard → SQL Editor
+2. Paste contents of `002_stripe_migration.sql`
+3. Click "Run"
+
+### Step 2: Update Dashboard Files
+
+Copy all files from this package to your `LongtailAIVentureStudio` project.
+
+### Step 3: Deploy Dashboard
+
+```bash
+cd LongtailAIVentureStudio
+npm install stripe  # if not already installed
+git add .
+git commit -m "Add Stripe integration"
+git push
+```
+
+### Step 4: Connect Ventures to Stripe
+
+For each venture with Stripe configured:
+
+1. Go to `/dashboard/[venture-slug]`
+2. Scroll to "Stripe Integration" section
+3. Enter Stripe Secret Key (`sk_live_...` or `sk_test_...`)
+4. Click "Save Stripe Keys"
+5. Click "Sync Now" to pull products/prices/subscriptions
+
+### Step 5: Add Tracking to Venture Apps
+
+For ventures that need tracking code added:
+
+1. Copy `lib/tracking.ts` to the venture's `lib/` folder
+2. Update the `VENTURE_SLUG` constant in the file
+3. Add to `.env`:
    ```
-   supabase/migrations/001_initial_schema.sql
+   VENTURE_STUDIO_URL=https://longtail-ai-ventures.vercel.app
+   NEXT_PUBLIC_VENTURE_SLUG=your-venture-slug
    ```
-3. Copy your project URL and keys from Settings → API
+4. Use tracking functions:
+   ```typescript
+   import { trackSignup, trackSubscription } from '@/lib/tracking'
+   
+   // On signup
+   await trackSignup({ email: user.email, plan: 'free' })
+   
+   // On subscription
+   await trackSubscription({ email: user.email, plan: 'pro', amount: 49 })
+   ```
 
-### 3. Configure Environment
+### Step 6: Forward Stripe Webhooks (Optional)
 
-```bash
-cp .env.example ..env.local
-```
-
-Fill in your values:
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-
-GITHUB_TOKEN=ghp_xxx
-GITHUB_USERNAME=dennisolevr
-
-TRACKER_API_KEY=your-generated-key
-```
-
-### 4. Create Superadmin User
-
-```bash
-pnpm db:seed
-```
-
-This creates:
-- Auth user: `dennis@corporateaisolutions.com` / `longRagamuffin9@`
-- Superadmin entry in database
-- Sample ventures
-
-### 5. Run Development Server
-
-```bash
-pnpm dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) and log in.
-
-## Tracking API
-
-All ventures report to a single endpoint:
+In your venture's Stripe webhook handler, add:
 
 ```typescript
-// In your venture project
-await fetch('https://your-dashboard.vercel.app/api/track', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'x-api-key': process.env.TRACKER_API_KEY,
-  },
-  body: JSON.stringify({
-    project: 'tourlingo', // venture slug
-    event: 'signup',
-    data: {
-      email: 'user@example.com',
-      plan: 'free',
-      source: 'organic',
-    },
-  }),
-})
+import { forwardStripeEvent } from '@/lib/tracking'
+
+// Inside your webhook handler
+await forwardStripeEvent(event)
 ```
 
-### Supported Events
+---
 
-| Event | Data Fields |
-|-------|-------------|
-| `signup` | email, name, company, plan, source |
-| `revenue` | email, amount, currency, type, plan, stripe_* |
-| `upgrade` | email, from_plan, to_plan, amount |
-| `downgrade` | email, from_plan, to_plan |
-| `churn` | email, reason |
-| `*` (custom) | Any JSON data |
+## Ready Ventures (from audit)
 
-## Deploy to Vercel
+These ventures have Stripe + Tracking + Env configured:
+- ✅ Connexions
+- ✅ DealFindrs  
+- ✅ LaunchReady
+- ✅ OutreachReady
+
+Just need to:
+1. Add Stripe keys in dashboard
+2. Click "Sync"
+
+## Ventures Needing Stripe SDK
 
 ```bash
-vercel
+cd TourLingo && npm install stripe @stripe/stripe-js
+cd LeadSpark && npm install stripe @stripe/stripe-js
+cd universal-interviews && npm install stripe @stripe/stripe-js
 ```
 
-Set environment variables in Vercel dashboard.
+## Ventures Needing Tracking Code
 
-## Project Structure
+- Corporate-AI-Solutions - Add `lib/tracking.ts`
+- StoryVerse - Add `VENTURE_STUDIO_URL` to `.env`
 
+---
+
+## API Reference
+
+### POST /api/track
+
+Receives events from venture apps.
+
+```json
+{
+  "venture": "tourlingo",
+  "event": "signup|subscription|payment|churn",
+  "email": "user@example.com",
+  "plan": "free|starter|pro",
+  "amount": 49,
+  "status": "trial|active|churned"
+}
 ```
-├── app/
-│   ├── page.tsx                 # Login page
-│   ├── dashboard/
-│   │   ├── page.tsx             # Main dashboard
-│   │   └── [slug]/page.tsx      # Venture detail
-│   └── api/
-│       ├── track/route.ts       # Tracking endpoint
-│       └── github/repos/route.ts
-├── components/
-├── lib/
-│   ├── supabase.ts
-│   ├── supabase-server.ts
-│   └── utils.ts
-├── supabase/
-│   └── migrations/
-└── scripts/
-    └── seed.ts
+
+### POST /api/ventures/[slug]/stripe
+
+Save Stripe keys.
+
+```json
+{
+  "stripe_secret_key": "sk_live_...",
+  "stripe_webhook_secret": "whsec_..."
+}
 ```
 
-## Tech Stack
+### POST /api/ventures/[slug]/stripe/sync
 
-- **Framework:** Next.js 14 (App Router)
-- **Database:** Supabase (PostgreSQL)
-- **Auth:** Supabase Auth
-- **UI:** Tailwind CSS + Tremor
-- **Charts:** Recharts (via Tremor)
-- **Hosting:** Vercel
+Pull products, prices, and subscriptions from Stripe.
+
+Returns:
+```json
+{
+  "success": true,
+  "plans": 3,
+  "prices": 6,
+  "subscriptions": 42
+}
+```
