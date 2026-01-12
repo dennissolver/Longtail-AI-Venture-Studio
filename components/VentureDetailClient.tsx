@@ -90,7 +90,7 @@ interface VentureDetailProps {
   subscriptionCounts?: {
     active: number
     trialing: number
-    past_due: number
+    pastDue: number
     canceled: number
   }
 }
@@ -266,7 +266,7 @@ export default function VentureDetailClient({
             </div>
             <div className="text-center p-4 bg-amber-50 rounded-lg">
               <Text className="text-amber-600 font-medium">Past Due</Text>
-              <Metric className="text-amber-700">{subscriptionCounts.past_due}</Metric>
+              <Metric className="text-amber-700">{subscriptionCounts.pastDue}</Metric>
             </div>
             <div className="text-center p-4 bg-gray-50 rounded-lg">
               <Text className="text-gray-600 font-medium">Canceled</Text>
