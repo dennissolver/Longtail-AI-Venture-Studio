@@ -24,12 +24,15 @@ import {
 import { ArrowLeft, ExternalLink, Github, TrendingUp, Users, DollarSign, Activity, Target, UserMinus, Calendar, CreditCard, Zap } from 'lucide-react'
 
 interface PricingTier {
-  id: string
-  name: string
-  price: number
-  interval: string
-  subscribersNeeded: number
+  planId: string
+  planName: string
+  description?: string | null
+  monthlyPrice: number | null
+  yearlyPrice: number | null
   currency: string
+  subscribersNeeded: number
+  currentSubscribers: number
+  progress: number
 }
 
 interface VentureDetailProps {
@@ -128,7 +131,11 @@ export default function VentureDetailClient({
 
   // Get lowest price tier for primary display
   const lowestPriceTier = pricingTiers.length > 0
-    ? pricingTiers.reduce((min, tier) => tier.price < min.price ? tier : min, pricingTiers[0])
+    ? pricingTiers.reduce((min, tier) => {
+        const minPrice = min.monthlyPrice || min.yearlyPrice || 9999999
+        const tierPrice = tier.monthlyPrice || tier.yearlyPrice || 9999999
+        return tierPrice < minPrice ? tier : min
+      }, pricingTiers[0])
     : null
 
   return (
@@ -210,17 +217,29 @@ export default function VentureDetailClient({
           </Flex>
           <Grid numItems={1} numItemsSm={2} numItemsLg={pricingTiers.length > 3 ? 4 : pricingTiers.length} className="gap-4">
             {pricingTiers.map((tier) => (
-              <div key={tier.id} className="p-4 bg-gray-50 rounded-lg border border-gray-100">
-                <Text className="font-medium text-gray-900">{tier.name}</Text>
+              <div key={tier.planId} className="p-4 bg-gray-50 rounded-lg border border-gray-100">
+                <Text className="font-medium text-gray-900">{tier.planName}</Text>
+                {tier.description && (
+                  <Text className="text-xs text-gray-500 mt-1">{tier.description}</Text>
+                )}
                 <Metric className="text-emerald-600 my-2">
-                  {formatCurrency(tier.price)}
-                  <span className="text-sm font-normal text-gray-500">/{tier.interval}</span>
+                  {tier.monthlyPrice
+                    ? <>{formatCurrency(tier.monthlyPrice)}<span className="text-sm font-normal text-gray-500">/month</span></>
+                    : tier.yearlyPrice
+                      ? <>{formatCurrency(tier.yearlyPrice)}<span className="text-sm font-normal text-gray-500">/year</span></>
+                      : 'Custom'
+                  }
                 </Metric>
                 <div className="mt-3 pt-3 border-t border-gray-200">
                   <Text className="text-xs text-gray-500">Subscribers needed for $1M ARR:</Text>
                   <Text className="text-lg font-semibold text-indigo-600">
                     {formatNumber(tier.subscribersNeeded)}
                   </Text>
+                  <Flex justifyContent="between" className="mt-2">
+                    <Text className="text-xs text-gray-400">Current: {tier.currentSubscribers}</Text>
+                    <Text className="text-xs text-gray-400">{tier.progress.toFixed(1)}%</Text>
+                  </Flex>
+                  <ProgressBar value={tier.progress} color="indigo" className="h-1 mt-1" />
                 </div>
               </div>
             ))}
@@ -278,7 +297,7 @@ export default function VentureDetailClient({
             <Metric className="text-amber-600">{formatNumber(subscribersNeeded)}</Metric>
             <Text className="text-xs text-gray-400">
               {hasStripePricing && lowestPriceTier
-                ? `at ${formatCurrency(lowestPriceTier.price)}/${lowestPriceTier.interval}`
+                ? `at ${formatCurrency(lowestPriceTier.monthlyPrice || (lowestPriceTier.yearlyPrice || 0) / 12)}/mo`
                 : `at ${formatCurrency(avgRevenuePerUser)}/yr avg`
               }
             </Text>
